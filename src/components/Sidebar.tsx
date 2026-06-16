@@ -33,6 +33,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [tempName, setTempName] = React.useState(stats.username || '');
+
+  React.useEffect(() => {
+    setTempName(stats.username || '');
+  }, [stats.username]);
+
+  const handleNameClick = () => {
+    setTempName(stats.username || '');
+    setIsEditingName(true);
+  };
+
+  const handleNameSave = () => {
+    const trimmed = tempName.trim();
+    if (trimmed) {
+      setStats(prev => ({ ...prev, username: trimmed }));
+    }
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleNameSave();
+    } else if (e.key === 'Escape') {
+      setIsEditingName(false);
+    }
+  };
 
   const triggerPhotoUpload = () => {
     fileInputRef.current?.click();
@@ -141,7 +168,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
               <div className="user-meta">
-                <span className="user-name">{stats.username || 'Gezgin Savaşçı'}</span>
+                {isEditingName ? (
+                  <input
+                    type="text"
+                    className="user-name-input"
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    onBlur={handleNameSave}
+                    onKeyDown={handleNameKeyDown}
+                    maxLength={20}
+                    autoFocus
+                  />
+                ) : (
+                  <span className="user-name" onClick={handleNameClick} title="İsmi Değiştir (Tıkla)">
+                    {stats.username || 'Gezgin Savaşçı'}
+                  </span>
+                )}
                 <span className="user-title">Seviye {stats.level}</span>
               </div>
             </div>
@@ -403,6 +445,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          cursor: pointer;
+          border-bottom: 1px dashed transparent;
+          transition: all 0.2s;
+        }
+
+        .user-name:hover {
+          color: var(--accent-light);
+          border-bottom-color: var(--accent-light);
+        }
+
+        .user-name-input {
+          font-family: var(--font-sans);
+          font-weight: 600;
+          font-size: 13px;
+          color: var(--text-primary);
+          background: var(--bg-app);
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          padding: 2px 4px;
+          width: 100%;
+          outline: none;
         }
 
         .user-title {
